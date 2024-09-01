@@ -1,0 +1,41 @@
+{
+  "name": "webkit",
+  "version": "1.0.0",
+  "description": "webkit front end",
+  "main": "webkit/js/main.jsx",
+  "scripts": {
+    "build": "webpack --mode production"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.eecs.umich.edu/bmahjour/webkit.git"
+  },
+  "author": "Babak Mahjour",
+  "license": "ISC",
+  "dependencies": {
+    "@babel/core": "^7.13.16",
+    "@babel/plugin-proposal-class-properties": "^7.13.0",
+    "@babel/preset-env": "^7.13.15",
+    "@babel/preset-react": "^7.13.13",
+    "babel-loader": "^8.2.2",
+    "babel-plugin-transform-es3-member-expression-literals": "^6.22.0",
+    "css-loader": "^5.2.4",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "style-loader": "^2.0.0",
+    "webpack": "^5.34.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.9.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-jsx-a11y": "^6.5.1",
+    "eslint-plugin-react": "^7.28.0",
+    "eslint-plugin-react-hooks": "^4.3.0",
+    "webpack-cli": "^4.10.0"
+  },
+  "devServer": {
+    "noInfo": "true",
+    "stats": "minimal"
+  }
+}

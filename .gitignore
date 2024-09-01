@@ -1,0 +1,42 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+smarts_toolkit/webkit/etc/
+env/
+notebooks/figure1/*cdx
+notebooks/figure1/*cdxml
+notebooks/figure2/*cdx
+notebooks/figure2/*cdxml
+notebooks/figure3/*cdx
+notebooks/figure3/*cdxml
+notebooks/figure4/*cdx
+notebooks/figure4/*cdxml
+notebooks/EDF4/*cdx
+notebooks/EDF4/*cdxml
+
+smarts_toolkit/node_modules
+smarts_toolkit/webkit.egg-info
+analysis/node_modules
+analysis/webkit.egg-info
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# production
+/flask_session
+/build
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pyc
+/phactorlite/static/js
+/*.egg-info
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

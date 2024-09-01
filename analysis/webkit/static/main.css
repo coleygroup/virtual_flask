@@ -1,0 +1,351 @@
+#reactEntry{
+    width: 100%;
+    height: 100%;
+}
+
+/* .container{
+    width: 100%;
+    height: 100%;
+    display: flex;
+} */
+
+.filter{
+    display: flex;
+    flex-direction: column;
+}
+
+.filterCol{
+    width: 100%;
+    /* height: 100%; */
+    flex: 1;
+    display: flex;
+
+}
+
+.filterHolder{
+    width: 100%;
+    display: flex;
+}
+
+.buttonBox{
+    /* width: 20%; */
+    display: inline-flex;
+    /* align-items: center; */
+    flex-direction: column;
+}
+
+
+.buttonBox2{
+    display: inline-flex;
+    align-items: center;
+    flex-direction: column;
+    margin: 5px;
+}
+
+
+.binInfoBox{
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    margin: 5px;
+}
+
+
+.tableData{
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+
+
+.filterBox{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+
+}
+
+.formClass{
+    display: inline flex;
+    width: 100%;
+    justify-content: space-evenly;
+    margin: 0px;
+    
+}
+
+.container {
+    /* max-width: 800px; */
+    /* margin: 0 auto; */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2px;
+    width: 100%;
+    /* height: 100%; */
+    justify-content: space-between;
+}
+
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(100, 1fr);
+    grid-gap: 1px;
+    position: relative; /* Needed to position the pseudo-element absolutely */
+    width: 750px;
+    /* height: 750px; Maintain the aspect ratio */
+    overflow: hidden; /* Prevent overflow during animation */
+    border: 1px solid black;
+}
+
+.grid-cell {
+    position: relative; /* Establish a positioning context */
+    width: 100%;
+    height: 100%;
+    /* margin: 0.5px; */
+    border: 1px;
+    overflow: hidden; /* Ensure content does not overflow during scaling */
+    box-sizing: border-box; /* Include padding and border in the width and height */
+}
+
+.grid-cell::before {
+    content: '';
+    display: block;
+    padding-top: 100%; /* Force aspect ratio of 1:1 */
+}
+
+.loadingBox{
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    top: 45%;
+    left: 45%;
+    background-color: #333;
+    color: white;
+    width: 10%;
+    height: 10%;
+    z-index: 100;
+}
+
+.grid-cell:hover {
+    z-index: 1; /* Ensure the hovered cell is above others */
+    transform: scale(1.5); /* Enlarge the cell */
+    transition: transform 0.2s ease-in-out; /* Smooth transition for transform */
+    border: 1px solid rgba(0, 0, 0, 0.5); /* Optional: style to highlight on hover */
+}
+
+
+.smilesHolder{
+    width: 100%;
+    font-size: 8px;
+    text-align: center;
+}
+
+.filtersApplied{
+    display: flex;
+    flex-direction: column;
+    height: 50px;
+    overflow-y: scroll;
+}
+
+.queryBox {
+    margin: 2px;
+    display: flex;
+    width: 75%;
+    flex-direction: column;
+}
+
+/* .queryBox div { */
+    /* margin-bottom: 10px; */
+/* } */
+
+.queryBox input, .queryBox select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.queryBox input[type="range"] {
+    width: 100%;
+}
+
+.queryBox button {
+    margin: 1px;
+    padding: 2px;
+    font-size: 14px;
+    color: #fff;
+    background-color: #440505;
+    border: none;
+    border-radius: 0px;
+    cursor: pointer;
+}
+
+.queryBox button:hover {
+    background-color: #440505a0;
+}
+
+.resultsBox {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.resultsBox table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.resultsBox th, .resultsBox td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.resultsBox th {
+    background-color: #f2f2f2;
+    text-align: left;
+}
+
+.textColumn {
+    color: #333;
+    font-family: monospace;
+    white-space: pre-wrap;
+}
+
+.pathColumn {
+    color: #007bff;
+}
+
+.mechPathColumn {
+    color: #28a745;
+}
+
+.jsonColumn pre {
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 4px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.error {
+    color: red;
+}
+
+/* .inputGrid{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+} */
+
+
+.selectedHolder{
+    width: 100%;
+    height: 20%;
+    display: flex;
+    flex-direction: column;
+}
+
+
+.canvasHolder{
+    width: 100%;
+    height: 80%;
+}
+
+
+.left{
+    width: 40%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+
+.right{
+    width: 60%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    /* overflow-y: scroll; */
+}
+
+.mechBox{
+    width: 100%;
+    /* height: 60%; */
+    display: flex;
+    /* overflow-y: scroll; */
+    flex-direction: column;
+}
+
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #F5F5F5;
+}
+
+
+.selectedHolder{
+    width: 100%;
+    height: 40%;
+    display: flex;
+}
+
+.inputSelected{
+    width: 50%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.outputsHolder{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    overflow-x: scroll;
+}
+
+.mechHolderInfo{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.mechHolder{
+    width: 100%;
+    height: 250px;
+    display: flex;
+    margin: 1px;
+}
+
+.inputImageHolder{  
+    height: 90%;
+    width: 100%;
+}
+
+.productInfo{
+    height: 10%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    text-wrap: nowrap;
+}
+
+.productHolder{
+    border: 1px solid black;
+    margin: 1px;
+    /* display: flex; */
+    /* flex-direction: column; */
+    /* justify-content: space-between; */
+}
+
+
+.productHolder.selected{
+    border: 1px solid red;
+    margin: 1px;
+}

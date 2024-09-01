@@ -1,0 +1,29 @@
+#!/bin/bash
+
+set -e
+# set -x
+
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 <corpus|analysis>"
+    exit 1
+fi
+
+APP_NAME="$1"
+
+if [ "$APP_NAME" = "corpus" ]; then
+    export FLASK_APP=smarts_toolkit/webkit
+    export FLASK_DEBUG=True
+    export APP_SETTINGS="shared/config.py"
+    PORT="8000"
+elif [ "$APP_NAME" = "analysis" ]; then
+    export FLASK_APP=analysis/webkit
+    export FLASK_DEBUG=True
+    export APP_SETTINGS="shared/config.py"
+    PORT="8001"
+else
+    echo "Invalid app specified: $APP_NAME"
+    exit 2
+fi
+
+# Run Flask
+flask run --host 127.0.0.1 --port $PORT --debug

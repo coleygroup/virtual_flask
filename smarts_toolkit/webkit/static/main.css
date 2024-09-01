@@ -1,0 +1,201 @@
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #f5f5f5;
+}
+
+button {
+  background-color: #a31f34;
+}
+
+.nav-item {
+  cursor: pointer;
+  padding: 10px;
+  margin: 5px 0;
+  transition: background-color 0.3s ease;
+  color: white;
+}
+
+.nav-item.active {
+  background-color: #8a8b8c;
+}
+
+.container {
+  width: 100%;
+  height: 100%;
+}
+
+.drawerView {
+  width: 100%;
+  height: 100%;
+}
+
+.searchView {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  /* justify-content: center; */
+  align-items: center;
+}
+
+.selectedMechanismViewer.search{
+    width: 100%;
+    display: flex;
+    height: 85%;
+}
+.searchBar{
+    width: 100%;
+    display: flex;
+    padding: 10px;
+    justify-content: center;
+    height: 15%;
+}
+.header {
+  width: 100%;
+  height: 5%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* padding: 0 10px; */
+  background: #a31f34;
+}
+
+.navLeft {
+  display: flex;
+}
+
+.headerTitle {
+  color: white;
+  font-weight: bold;
+  font-size: 20px;
+  padding: 10px;
+}
+
+.headerButtons {
+  /* width: 10%; */
+  /* height: 100%; */
+  padding: 10px;
+  display: flex;
+  /* justify-content: flex-end; */
+}
+
+.view {
+  height: 95%;
+  width: 100%;
+}
+
+.top {
+  width: 100%;
+  height: 75%;
+}
+
+.bottom {
+  width: 100%;
+  height: 25%;
+  background-color: #f2f2f2;
+}
+
+.sidebar2 {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.sidebar-item {
+  width: 100%;
+  height: 15%;
+  display: flex;
+  align-items: center;
+}
+
+.corpusView {
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+.mechanismList {
+  width: 15%;
+  height: 100%;
+  overflow-y: scroll;
+  background-color: #f2f2f2;
+}
+
+.selectedMechanismViewer {
+  width: 85%;
+  height: 98%;
+  padding: 3px;
+}
+
+.mechanismScopes {
+  display: flex;
+  width: 95%;
+  overflow-x: scroll;
+  height: 20%;
+  padding: 2px;
+}
+
+.rendererHolder {
+  width: 75%;
+  display: flex;
+  flex-direction: column;
+}
+
+.testInput {
+  width: 25%;
+  display: flex;
+  flex-direction: column;
+}
+
+.mechanismScopeContent {
+  display: flex;
+  flex-direction: column;
+  padding: 1px;
+  border: 1px solid black;
+  flex: 1;
+  min-width: 20%;
+  height: 95%;
+}
+
+.selectedMechanism {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mechanismName {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  font-weight: bold;
+  height: 3%;
+}
+
+.mechanism {
+  border: 1px solid black;
+}
+
+.mechanismSteps {
+  height: 75%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: scroll;
+  width: 100%;
+}
+
+.rendererMechanismText {
+  width: 100%;
+}
+
+.mechanismStepContent {
+  width: 100%;
+  display: flex;
+  border-bottom: 2px solid black;
+  padding-bottom: 10px;
+  padding-top: 10px;
+}
