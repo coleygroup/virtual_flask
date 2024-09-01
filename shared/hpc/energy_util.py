@@ -112,13 +112,14 @@ def run_xtb(filename, charge):
 
     return 0, output
 
-
+import os
 def calc(smiles, id):
     # print(smiles)
     mol = generate_conformer(smiles)
     if mol is None:
         return -1000000
-    xyz_filename = f"spare/{str(id)}.xyz"
+    xyz_filename = f"{os.getcwd()}/virtual_flask/qm_calcs/{str(id)}.xyz"
+    # print(os.getcwd())
     write_xyz(mol, xyz_filename)
     charge = Chem.GetFormalCharge(mol)
 

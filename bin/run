@@ -4,7 +4,7 @@ set -e
 # set -x
 
 if [ "$#" -ne 1 ]; then
-    echo "Usage: $0 <corpus|analysis>"
+    echo "Usage: $0 <corpus|analysis|campaign>"
     exit 1
 fi
 
@@ -20,6 +20,11 @@ elif [ "$APP_NAME" = "analysis" ]; then
     export FLASK_DEBUG=True
     export APP_SETTINGS="shared/config.py"
     PORT="8001"
+elif [ "$APP_NAME" = "campaign" ]; then
+    export FLASK_APP=campaign/webkit
+    export FLASK_DEBUG=True
+    export APP_SETTINGS="shared/config.py"
+    PORT="8002"
 else
     echo "Invalid app specified: $APP_NAME"
     exit 2

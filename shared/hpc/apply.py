@@ -1,4 +1,4 @@
-from webkit.etc.commands import map_1, map_2, thermo, dock, reduce
+from shared.hpc.commands import map_1, map_2, thermo, dock, reduce, g16
 import dill
 import sys
 from rdkit import RDLogger
@@ -39,6 +39,18 @@ if command == "all":
             thermo(dir, data, index_value)
         if i == "dock":
             dock(dir, data, index_value)
+
+elif command == "g16":
+    input_file_loc = f"{dir}/input_data/input_{index_value}.txt"
+    if not os.path.exists(input_file_loc):
+        print(f"File {input_file_loc} does not exist")
+        sys.exit(0)
+    with open(input_file_loc, "r") as f:
+        data = [x.strip() for x in f.readlines()]
+
+    g16(dir, data, index_value)
+
+
 else:
 
     input_file_loc = f"{dir}/{command}_input_data/input_{index_value}.txt"

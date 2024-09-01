@@ -17,7 +17,7 @@ setup(
         "dill",
         "numpy<2",
         "psycopg2-binary",
-        "pygraphviz",
+        # "pygraphviz",
         "requests",
         "rdcanon @ git+https://github.com/coleygroup/rdcanon/"
     ],
@@ -25,6 +25,7 @@ setup(
         'console_scripts': [
             'run-corpus=smarts_toolkit.webkit.__main__:main',
             'run-analysis=analysis.webkit.__main__:main',
+            'run-campaign=campaign.webkit.__main__:main',
         ]
     },
 )

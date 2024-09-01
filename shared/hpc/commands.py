@@ -41,6 +41,23 @@ class Node:
     def __setattr__(self, key, value):
         self.__dict__[key] = value
 
+    def __getitem__(self, key):
+        return self.__dict__[key]
+
+    def __setitem__(self, key, value):
+        self.__dict__[key] = value
+
+    def serialize(self):
+        return {
+            "node_id": self.node_id,
+            "network_id": self.network_id,
+            "mapped_smiles": self.mapped_smiles,
+            "unmapped_smiles": self.unmapped_smiles,
+            "these_reacting_atoms_path": self.these_reacting_atoms_path,
+            "product_in_precalc": self.product_in_precalc,
+            "other_data": self.other_data,
+        }
+
 
 class Network:
     def __init__(self, **kwargs):
@@ -63,15 +80,22 @@ class Network:
 
         nx_nodes = []
         for k in nodes:
-            nx_nodes.append((k.node_id, k))
-
+            # deconstructor
+            # print(k)
+            # print(k.serialize())
+            G.add_node(k.node_id, **k.serialize())
+            # nx_nodes.append((k.node_id, k))
+        # print(len(nx_nodes))
+        print(G)
         nx_edges = []
         for k in edges:
-            nx_edges.append((k.source_node_id, k.destination_node_id, k.serialize()))
+            G.add_edge(k.source_node_id, k.destination_node_id, **k.serialize())
+            # nx_edges.append((k.source_node_id, k.destination_node_id, k.serialize()))
 
-        G.add_nodes_from(nx_nodes)
-        G.add_edges_from(nx_edges)
-
+        # G.add_nodes_from(nx_nodes)
+        # print(G)
+        # G.add_edges_from(nx_edges)
+        print(G)
         self.nx_graph = G
 
         self.node_map = {}
@@ -80,6 +104,19 @@ class Network:
 
     def get_shortest_path(self, node1, node2):
         return nx.shortest_path(self.nx_graph, node1, node2)
+
+    def get_all_shortest_paths(self, node1, node2):
+        return nx.all_shortest_paths(self.nx_graph, node1, node2)
+
+    def find_neighbors(self, node_id):
+        nx_neighbors = self.nx_graph.out_edges(node_id)
+        neighbors = []
+        for n in nx_neighbors:
+            neighbors.append(n[1])
+        return neighbors
+
+    def get_node(self, node_id):
+        return self.node_map[node_id]
 
     def get_edge(self, node1, node2):
         # print("n", node1, node2)
@@ -313,11 +350,8 @@ def map_1(dir, data, index_value):
     # return state_network
 
 
-def get_network(cursor, network_id):
-    cursor.execute(
-        "SELECT * FROM test_networks WHERE network_id = %s;",
-        (network_id,),
-    )
+def get_network(cursor, network_id, name="test"):
+    cursor.execute(f"SELECT * FROM {name}_networks WHERE network_id = {network_id};")
 
     network = cursor.fetchone()
 
@@ -327,20 +361,14 @@ def get_network(cursor, network_id):
     return network
 
 
-def get_nodes(cursor, network_id, query=None, values="*"):
+def get_nodes(cursor, network_id, query=None, values="*", name="test"):
     if query == None:
         cursor.execute(
-            "SELECT " + values + " FROM test_nodes WHERE network_id = %s;",
-            (network_id,),
+            f"SELECT {values} FROM {name}_nodes WHERE network_id = {network_id};"
         )
     else:
         cursor.execute(
-            "SELECT "
-            + values
-            + " FROM test_nodes WHERE network_id = %s AND "
-            + query
-            + ";",
-            (network_id,),
+            f"SELECT {values} FROM {name}_nodes WHERE network_id = {network_id} AND {query};",
         )
 
     onodes = cursor.fetchall()
@@ -355,14 +383,10 @@ def get_nodes(cursor, network_id, query=None, values="*"):
     return nodes
 
 
-def get_edges(cursor, network_id):
-    cursor.execute(
-        "SELECT * FROM test_edges WHERE network_id = %s;",
-        (network_id,),
-    )
+def get_edges(cursor, network_id, name="test"):
+    cursor.execute(f"SELECT * FROM {name}_edges WHERE network_id = {network_id};")
 
     oedges = cursor.fetchall()
-
     colnames = [desc[0] for desc in cursor.description]
     edges = []
     for row in oedges:
@@ -832,6 +856,327 @@ def reduce_1(dir, data):
 
             upload_data(conn, table_name_global, reduced_data)
             nn = nn + 1
+
+
+import subprocess
+import os
+from rdkit import Chem
+from rdkit.Chem import AllChem
+
+
+def direct_node_query(cur, node_idx):
+    cur.execute(f"SELECT * FROM rxrange_nodes WHERE node_id = {node_idx};")
+    colnames = [desc[0] for desc in cur.description]
+    out = cur.fetchone()
+    row_dict = dict(zip(colnames, out))
+    test_node = Node(**row_dict)
+    return test_node
+
+
+def calculate_multiplicity(smiles):
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        print("Invalid SMILES string.")
+        return None
+
+    mol = Chem.AddHs(mol)
+    charge = Chem.GetFormalCharge(mol)
+
+    num_electrons = sum(atom.GetAtomicNum() for atom in mol.GetAtoms()) - charge
+
+    # Determine multiplicity based on electron count
+    if num_electrons % 2 == 0:
+        multiplicity = 1  # Singlet for even electron count
+    else:
+        multiplicity = 2  # Doublet for odd electron count (common default)
+
+
+    return multiplicity, charge
+
+
+def extract_calc_props(output_text):
+    properties = {
+        "single_point_energy": None,
+        "gibbs_free_energy": None,
+        # "homo_energy": None,
+        # "lumo_energy": None,
+        # "homo_lumo_gap": None,
+        # "has_imaginary_frequencies": False,
+        # "all_frequencies": [],
+    }
+
+    # Extract the single-point energy
+    match = re.search(r"FINAL SINGLE POINT ENERGY\s+(-\d+\.\d+)", output_text)
+    if match:
+        properties["single_point_energy"] = float(match.group(1))
+
+    # Extract the Gibbs free energy
+    match = re.search(
+        r"Final Gibbs free energy.+(-\d+\.\d+)", output_text
+    )
+    if match:
+        properties["gibbs_free_energy"] = float(match.group(1))
+
+    # # Extract HOMO and LUMO energies, if available
+    # homo_match = re.search(r"E\(HOMO\)\s+=\s+(-?\d+\.\d+)", output_text)
+    # lumo_match = re.search(r"E\(LUMO\)\s+=\s+(-?\d+\.\d+)", output_text)
+    # if homo_match:
+    #     properties["homo_energy"] = float(homo_match.group(1))
+    # if lumo_match:
+    #     properties["lumo_energy"] = float(lumo_match.group(1))
+    # if homo_match and lumo_match:
+    #     properties["homo_lumo_gap"] = (
+    #         properties["lumo_energy"] - properties["homo_energy"]
+    #     )
+
+    # # Check for any imaginary frequencies and collect all frequency values
+    # freq_matches = re.findall(r"Frequency:\s+(-?\d+\.\d+)", output_text)
+    # if freq_matches:
+    #     properties["all_frequencies"] = [float(freq) for freq in freq_matches]
+    #     properties["has_imaginary_frequencies"] = any(
+    #         freq < 0 for freq in properties["all_frequencies"]
+    #     )
+
+    return properties
+
+def query_qm_smiles(cur, sm):
+    cur.execute(f"SELECT * FROM orca_calc WHERE smiles = '{sm}';")
+    colnames = [desc[0] for desc in cur.description]
+    out = cur.fetchone()
+    if not out:
+        return None
+    row_dict = dict(zip(colnames, out))
+    return row_dict
+
+
+def g16(dir, data, index_value):
+    files = []
+    for i in data:
+        conn = connect_to_rds()
+        cursor = conn.cursor()
+
+        node = direct_node_query(cursor, i)
+
+        cursor.close()
+        conn.close()
+
+        sms = node.unmapped_smiles.split(".")
+
+        free_point_energy = 0
+        gibbs_free_energy = 0
+        failed = False
+        for idx, sm in enumerate(sms):
+            conn = connect_to_rds()
+            cursor = conn.cursor()
+            q_res = query_qm_smiles(cursor, sm)
+            cursor.close()
+            conn.close()
+
+            if q_res != None:
+                free_point_energy += q_res["single_point_energy"]
+                gibbs_free_energy += q_res["gibbs_free_energy"]
+                print("skippers")
+                continue
+
+            multiplicity, charge = calculate_multiplicity(sm)
+            print("running orca", i, idx, sm, multiplicity, charge)
+            out = smiles_to_orca(
+                sm, f"node_{i}_{idx}", charge=charge, multiplicity=multiplicity
+            )
+            if out == None:
+                print("orca failed")
+                failed = True
+                break
+            ene = extract_calc_props(out)
+            free_point_energy += ene["single_point_energy"]
+            gibbs_free_energy += ene["gibbs_free_energy"]
+
+            conn = connect_to_rds()
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO orca_calc (smiles, single_point_energy, gibbs_free_energy, phase) VALUES (%s, %s, %s, %s);", (sm, ene["single_point_energy"], ene["gibbs_free_energy"], "gas"))
+            conn.commit()
+            cursor.close()
+            conn.close()
+
+        if failed:
+            node.other_data["passed_qm"] = False
+            node.other_data["free_point_energy"] = None
+            node.other_data["gibbs_free_energy"] = None
+        else:
+            node.other_data["passed_qm"] = True
+            node.other_data["free_point_energy"] = free_point_energy
+            node.other_data["gibbs_free_energy"] = gibbs_free_energy
+
+        updates = []
+        updates.append((json.dumps(node.other_data), node.node_id))
+
+        conn = connect_to_rds()
+        cursor = conn.cursor()
+
+        execute_batch(
+            cursor,
+            "UPDATE rxrange_nodes SET other_data = %s WHERE node_id = %s;",
+            updates,
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        files.append(i)
+        print("finished gaussian", i)
+        print()
+
+
+import subprocess
+import os
+from rdkit import Chem
+from rdkit.Chem import AllChem
+
+
+def smiles_to_orca(
+    smiles,
+    molecule_name,
+    charge=0,
+    multiplicity=1,
+    method="UKS B3LYP",
+    basis_set="def2-SVP",
+    extra_options="Opt Freq TightSCF",
+):
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        print("Invalid SMILES string.")
+        return None
+    mol = Chem.AddHs(mol)
+
+    # Generate 3D coordinates
+    AllChem.EmbedMolecule(mol, randomSeed=0xF00D)  # Embeds a 3D conformation
+    AllChem.UFFOptimizeMolecule(mol)  # USE MMFF for better results?
+
+    # Create ORCA input file content
+    input_file_content = f"%pal nprocs {8} end\n"
+    input_file_content += f"! {method} {basis_set} {extra_options}\n\n"
+    # input_file_content += f'%cpcm\n   SMDsolvent "{"DMSO"}"\nend\n\n'
+    input_file_content += f"* xyz {charge} {multiplicity}\n"
+    for atom in mol.GetAtoms():
+        pos = mol.GetConformer().GetAtomPosition(atom.GetIdx())
+        input_file_content += (
+            f"{atom.GetSymbol()} {pos.x:.6f} {pos.y:.6f} {pos.z:.6f}\n"
+        )
+
+    input_file_content += "*\n"
+
+    # Write ORCA input file
+    input_filename = f"scratch/{molecule_name}.inp"
+    with open(input_filename, "w") as f:
+        f.write(input_file_content)
+
+    # Run ORCA calculation
+    output_filename = f"scratch/{molecule_name}.out"
+    try:
+        # Run ORCA with input and output redirection
+        subprocess.run(
+            ["/home/software/orca/5.0.3/orca", input_filename],
+            stdout=open(output_filename, "w"),
+            stderr=subprocess.STDOUT,
+            check=True,
+        )
+    except subprocess.CalledProcessError:
+        print("ORCA calculation failed.")
+        return None
+
+    # Capture and return output
+    with open(output_filename, "r") as f:
+        output = f.read()
+
+    # Optionally clean up files after run
+    os.remove(input_filename)
+
+    return output
+
+
+def smiles_to_gaussian(
+    smiles,
+    molecule_name,
+    charge=0,
+    multiplicity=1,
+    method="B3LYP",
+    basis_set="6-31G(d)",
+    extra_options="opt freq scf=tight pop=full",
+):
+    """
+    Converts a SMILES string to a 3D molecule, generates a Gaussian input file,
+    runs Gaussian, and captures the output.
+
+    Parameters:
+    - smiles: SMILES string of the molecule
+    - molecule_name: Name for the molecule, used for file naming
+    - charge: Overall charge of the molecule
+    - multiplicity: Spin multiplicity of the molecule
+    - method: Quantum chemistry method to use (default is B3LYP)
+    - basis_set: Basis set to use (default is 6-31G(d))
+    - extra_options: Additional Gaussian keywords (default is "opt freq scf=tight pop=full")
+
+    Returns:
+    - output: Captured output from Gaussian calculation
+    """
+    # Convert SMILES to molecule and add hydrogens
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        print("Invalid SMILES string.")
+        return None
+    mol = Chem.AddHs(mol)
+
+    # Generate 3D coordinates
+    AllChem.EmbedMolecule(mol, randomSeed=0xF00D)  # Embeds a 3D conformation
+    AllChem.UFFOptimizeMolecule(mol)  # Optimizes the 3D conformation
+
+    # Create Gaussian input file content
+    input_file_content = f"""%chk={molecule_name}.chk
+# {extra_options} {method}/{basis_set}
+
+{molecule_name}
+
+{charge} {multiplicity}
+"""
+    for atom in mol.GetAtoms():
+        pos = mol.GetConformer().GetAtomPosition(atom.GetIdx())
+        input_file_content += (
+            f"{atom.GetSymbol()} {pos.x:.6f} {pos.y:.6f} {pos.z:.6f}\n"
+        )
+
+    input_file_content += "\n"
+
+    # Write Gaussian input file
+    input_filename = f"{molecule_name}.com"
+    with open(input_filename, "w") as f:
+        f.write(input_file_content)
+
+    # Run Gaussian calculation
+    output_filename = f"{molecule_name}.log"
+    try:
+        # Run Gaussian with input and output redirection
+        subprocess.run(
+            ["g16", input_filename],
+            stdout=open(output_filename, "w"),
+            stderr=subprocess.STDOUT,
+            check=True,
+        )
+    except subprocess.CalledProcessError as e:
+        print("Gaussian calculation failed.")
+        return None
+
+    # Capture and return output
+    with open(output_filename, "r") as f:
+        output = f.read()
+
+    # Optionally clean up files after run
+    os.remove(input_filename)
+    os.remove(
+        f"{molecule_name}.chk"
+    )  # Comment this out if you want to keep checkpoint files
+
+    return output
 
 
 def precalculate_novelty_askcos(inputs):

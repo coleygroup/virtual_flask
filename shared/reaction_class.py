@@ -776,11 +776,11 @@ class VirtualFlask:
         with open(filename, "rb") as f:
             return dill.load(f)
 
-    def push_to_db(self, conn):
+    def push_to_db(self, conn, table):
         cur = conn.cursor()
 
         cur.execute(
-            f"INSERT INTO test_networks (mapped_input_smiles_list, reagents, input_mapped_smiles, input_unmapped_smiles, starting_material_atom_maps, runtime, cum_runtime, mech_count_map, end_state, other_data) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING network_id",
+            f"INSERT INTO {table}_networks (mapped_input_smiles_list, reagents, input_mapped_smiles, input_unmapped_smiles, starting_material_atom_maps, runtime, cum_runtime, mech_count_map, end_state, other_data) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING network_id",
             (
                 self.mapped_input_smiles_list,
                 self.reagents,
@@ -833,14 +833,13 @@ class VirtualFlask:
         # print(k)
         execute_batch(
             cur,
-            "INSERT INTO test_nodes (network_id, mapped_smiles, unmapped_smiles, these_reacting_atoms_path, product_in_precalc, other_data) VALUES (%s, %s, %s, %s::jsonb, %s, %s);",
+            f"INSERT INTO {table}_nodes (network_id, mapped_smiles, unmapped_smiles, these_reacting_atoms_path, product_in_precalc, other_data) VALUES (%s, %s, %s, %s::jsonb, %s, %s);",
             data_to_insert,
         )
 
         node_to_id_map = {}
         cur.execute(
-            "SELECT node_id, unmapped_smiles FROM test_nodes WHERE network_id = %s;",
-            (network_id,),
+            f"SELECT node_id, unmapped_smiles FROM {table}_nodes WHERE network_id = {network_id};",
         )
         for n in cur.fetchall():
             node_to_id_map[n[1]] = n[0]
@@ -872,7 +871,7 @@ class VirtualFlask:
 
         execute_batch(
             cur,
-            "INSERT INTO test_edges (network_id, source_node_id, destination_node_id, other_data) VALUES (%s, %s, %s, %s);",
+            f"INSERT INTO {table}_edges (network_id, source_node_id, destination_node_id, other_data) VALUES (%s, %s, %s, %s);",
             data_to_insert,
         )
 
@@ -1260,7 +1259,6 @@ class VirtualFlask:
 
         pos = nx.nx_agraph.graphviz_layout(G, prog="dot")
 
-
         propagation_values = [self.nodes[node].propagations for node in self.nodes]
         norm = mcolors.Normalize(vmin=min(propagation_values), vmax=5)
         # print(matplotlib.colormaps)
@@ -1294,8 +1292,6 @@ class VirtualFlask:
         fig, ax = plt.subplots(dpi=300)
         fig.set_size_inches(2, 2)
 
-        G = hypx
-
         nodes_x, nodes_y = zip(*[pos[n] for n in G.nodes()])
         ax.scatter(
             nodes_x,
@@ -1315,8 +1311,6 @@ class VirtualFlask:
                 alpha=1,
                 zorder=4,
             )
-
-
 
         for edge in G.edges():
             start_x, start_y = pos[edge[0]]
@@ -1381,7 +1375,9 @@ class VirtualFlask:
         pos = nx.nx_agraph.graphviz_layout(hypx, prog="dot")
 
         propagation_values = [self.nodes[node].propagations for node in sub]
-        norm = mcolors.Normalize(vmin=min(propagation_values)-1, vmax=max(propagation_values))
+        norm = mcolors.Normalize(
+            vmin=min(propagation_values) - 1, vmax=max(propagation_values)
+        )
         # print(matplotlib.colormaps)
         cmap = plt.cm._colormaps.get_cmap("Blues")
 

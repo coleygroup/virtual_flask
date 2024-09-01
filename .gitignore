@@ -16,7 +16,12 @@ smarts_toolkit/node_modules
 smarts_toolkit/webkit.egg-info
 analysis/node_modules
 analysis/webkit.egg-info
+campaign/node_modules
+campaign/webkit.egg-info
 
+qm_calcs/
+final_geometry.xyz
+optimizer.log
 # dependencies
 /node_modules
 /.pnp

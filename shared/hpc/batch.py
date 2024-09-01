@@ -139,7 +139,7 @@ class DataLoader:
 
 def generate_sh(filename, index, dir, name, command):
     content = f"""#!/bin/bash
-#SBATCH -n 4           # 1 core
+#SBATCH -n 8           # 1 core
 #SBATCH -t 2-10:00:00   # d-hh:mm:ss
 #SBATCH -J {command}_{index} # job name
 #SBATCH --output=log_out/{name}/{command}_sample_{index}.log   # Standard output and error log. 
@@ -148,10 +148,11 @@ def generate_sh(filename, index, dir, name, command):
 
 source /etc/profile.d/modules.sh
 
-export OMP_NUM_THREADS=4
+export OMP_NUM_THREADS=8
 module load xtb
 module load openbabel
-python -u ./smarts_helper/webkit/etc/apply.py {command} {index} {dir} > log_out/{name}/{command}_sample_{index}.out
+module load orca
+python -u ./shared/hpc/apply.py {command} {index} {dir} > log_out/{name}/{command}_sample_{index}.out
 
 """
     with open(filename, "w") as f:
@@ -283,6 +284,71 @@ class DistributedPipeline:
                     ) as f:
                         for j in range(i * n_per_d, (i + 1) * n_per_d):
                             f.write(str(hits_w_docking_score[j]) + "\n")
+
+        self._create_sh_files(stage=stage)
+        self._submit(stage)
+
+
+class SingleNetworkDistributedPipeline:
+    def __init__(
+        self,
+        path="/nobackup1/bmahjour/single_network_distributed",
+        node_indices=[],
+        d=300,
+    ):
+        self.path = path
+        self.name = path.split("/")[-1]
+        self.node_indices = node_indices
+        self.d = d
+        self.batches = []
+
+        n_per_d = int(np.ceil(len(node_indices) / d))
+        for i in range(d):
+            l = node_indices[i * n_per_d : (i + 1) * n_per_d]
+            if len(l) == 0:
+                continue
+            self.batches.append(l)
+
+        print([len(b) for b in self.batches])
+        print(len(self.batches), "batches")
+
+    def _create_sh_files(self, stage):
+        if not os.path.exists(f"{self.path}/{stage}_slurm_scripts"):
+            os.makedirs(f"{self.path}/{stage}_slurm_scripts")
+
+        for i in range(0, len(self.batches)):
+            generate_sh(
+                f"{self.path}/{stage}_slurm_scripts/output_script-{i}.sh",
+                i,
+                self.path,
+                self.name,
+                stage,
+            )
+
+    def _submit(self, stage):
+        for i in range(0, len(self.batches)):
+            os.system(f"sbatch {self.path}/{stage}_slurm_scripts/output_script-{i}.sh")
+
+    def pipe(self, stage):
+        if not os.path.exists(f"{self.path}"):
+            os.makedirs(f"{self.path}")
+
+        if not os.path.exists(f"{self.path}/input_data"):
+            os.makedirs(f"{self.path}/input_data")
+        else:
+            os.system(f"rm -rf {self.path}/input_data")
+            os.makedirs(f"{self.path}/input_data")
+
+        for d_idx, batch in enumerate(self.batches):
+            with open(f"{self.path}/input_data/input_{d_idx}.txt", "w") as f:
+                for b in batch:
+                    f.write(str(b) + "\n")
+
+        if not os.path.exists(f"log_out/{self.name}"):
+            os.makedirs(f"log_out/{self.name}")
+        else:
+            os.system(f"rm -rf log_out/{self.name}")
+            os.makedirs(f"log_out/{self.name}")
 
         self._create_sh_files(stage=stage)
         self._submit(stage)

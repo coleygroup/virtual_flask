@@ -137,15 +137,20 @@ def mark_structural_failure(nodes):
             continue
         node.other_data["structural_failure"] = False
 
+
 def apply_filters_local(network):
     nodes = apply_filters([network[n] for n in network.nodes], network, True)
     for n in nodes:
         network[n.unmapped_smiles].tcp = n.other_data["tcp"]
-        network[n.unmapped_smiles].failed_thermo_state1 = n.other_data["failed_thermo_state1"]
-        network[n.unmapped_smiles].contains_non_participating_transformation = n.other_data[
-            "contains_non_participating_transformation"
+        network[n.unmapped_smiles].failed_thermo_state1 = n.other_data[
+            "failed_thermo_state1"
         ]
-        network[n.unmapped_smiles].structural_failure = n.other_data["structural_failure"]
+        network[n.unmapped_smiles].contains_non_participating_transformation = (
+            n.other_data["contains_non_participating_transformation"]
+        )
+        network[n.unmapped_smiles].structural_failure = n.other_data[
+            "structural_failure"
+        ]
 
 
 def apply_filters(nodes, network, verbose=False):
@@ -182,6 +187,7 @@ def apply_filters(nodes, network, verbose=False):
             len([n for n in nodes if n.other_data["structural_failure"] == False]),
         )
     return nodes
+
 
 def print_filter_counts(nodes):
     tcps = len([n for n in nodes if n.other_data["tcp"] == False])

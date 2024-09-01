@@ -257,21 +257,21 @@ def get_state_img(mol, highlight_atoms=[], atom_cols={}):
     img = img.convert("RGBA")
     datas = img.getdata()
 
-    # newData = []
-    # for item in datas:
-    #     if item[0] == 255 and item[1] == 255 and item[2] == 255:  # Finding white pixels
-    #         newData.append((255, 255, 255, 0))  # Changing white pixels to transparent
-    #     else:
-    #         newData.append(item)
-    # img.putdata(newData)
+    newData = []
+    for item in datas:
+        if item[0] == 255 and item[1] == 255 and item[2] == 255:  # Finding white pixels
+            newData.append((255, 255, 255, 0))  # Changing white pixels to transparent
+        else:
+            newData.append(item)
+    img.putdata(newData)
 
     output_buffer = io.BytesIO()
     img.save(
         output_buffer, format="PNG", dpi=(600, 600)
     )  # You can change 'PNG' to 'JPEG'
     byte_data = output_buffer.getvalue()
-    # base64_str = base64.b64encode(byte_data).decode("utf-8")
-    return byte_data
+    base64_str = base64.b64encode(byte_data).decode("utf-8")
+    return base64_str
 
 
 def draw_hypergraph(name, hyp, highlight):
